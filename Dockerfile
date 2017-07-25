@@ -86,6 +86,6 @@ RUN chmod 755 /usr/local/run.sh \
 && cp /etc/nginx/sites-available/default.conf /etc/nginx/sites-enabled \
 && /usr/bin/easy_install supervisor \
 && /usr/bin/easy_install supervisor-stdout \
-&& echo "[client]\nssl-mode=VERIFY_CA\nssl-ca=/etc/ssl/certs/Baltimore_CyberTrust_Root.pem" > /etc/my.cnf
+
 
 CMD ["/usr/local/run.sh"]
