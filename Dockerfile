@@ -82,10 +82,10 @@ RUN curl -o /tmp/composer-setup.php https://getcomposer.org/installer \
 
 COPY etc  /etc/
 
-RUN chmod 755 /usr/local/run.sh \
-&& cp /etc/nginx/sites-available/default.conf /etc/nginx/sites-enabled \
+RUN cp /etc/nginx/sites-available/default.conf /etc/nginx/sites-enabled \
 && /usr/bin/easy_install supervisor \
-&& /usr/bin/easy_install supervisor-stdout \
+&& /usr/bin/easy_install supervisor-stdout 
 
-
-CMD ["/usr/local/run.sh"]
+COPY run.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/run.sh
+ENTRYPOINT ["run.sh"]
