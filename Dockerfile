@@ -1,8 +1,6 @@
 FROM ubuntu
 MAINTAINER bartr
 
-EXPOSE 80 
-
 WORKDIR /usr/local
 
 RUN dpkg-divert --local --rename --add /sbin/initctl \
@@ -64,28 +62,27 @@ RUN sed -i -e "s/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/g" /etc/php/7.0/fpm/php.
 &&  rm /etc/nginx/sites-enabled/*
 #&& sed -i "s@;clear_env = no@clear_env = no@" /etc/php/7.0/fpm/pool.d/www.conf
 
-#composer
-ENV COMPOSER_HOME /composer
 
-# Add global binary directory to PATH and make sure to re-export it
-ENV PATH /composer/vendor/bin:$PATH
-#Global path for PHP
-ENV PATH /usr/local/php/bin/:$PATH
+# Let the conatiner know that there is no tty
+#ENV DEBIAN_FRONTEND noninteractive
 
-# Allow Composer to be run as root
-ENV COMPOSER_ALLOW_SUPERUSER 1
 
-# Setup the Composer installer
-RUN curl -o /tmp/composer-setup.php https://getcomposer.org/installer \
-  && curl -o /tmp/composer-setup.sig https://composer.github.io/installer.sig \
-  && php -r "if (hash('SHA384', file_get_contents('/tmp/composer-setup.php')) !== trim(file_get_contents('/tmp/composer-setup.sig'))) { unlink('/tmp/composer-setup.php'); echo 'Invalid installer' . PHP_EOL; exit(1); }"
+# SSH
 
+ENV SSH_PASSWD "root:Docker!"
+
+RUN  apt-get update \
+	&& apt-get install -y --no-install-recommends openssh-server \
+	&& echo "$SSH_PASSWD" | chpasswd \
+
+COPY run.sh /usr/local/
 COPY etc  /etc/
 
-RUN cp /etc/nginx/sites-available/default.conf /etc/nginx/sites-enabled \
+RUN chmod 755 /usr/local/run.sh \
+&& cp /etc/nginx/sites-available/default.conf /etc/nginx/sites-enabled \
 && /usr/bin/easy_install supervisor \
 && /usr/bin/easy_install supervisor-stdout 
 
-COPY run.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/run.sh
-ENTRYPOINT ["run.sh"]
+EXPOSE 2222 80
+
+CMD ["/usr/local/run.sh"]
